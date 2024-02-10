@@ -36,7 +36,7 @@ def send_encoded_msg(json_msg):
     ws.send_binary(encoded_msg)
 
 def send():
-    login = {"path":"user/session","type":"login","username":"username32432","password":"(username32432)","id":10387,"version":7}
+    login = {"path":"user/session","type":"login","username":"tonylaz927@gmail.com","password":"KeepaTony1","id":10387,"version":7}
     d2 = {"path":"pro/category","domainId":1,"categoryIds":[-1],"l":"keepa.com","u":"/","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0","h":"y05NLUjUS87PBQA=","id":11673,"fp":{"i":"tncphz","r":"c/Rz93FV0PDMK0nN0VEAUxpBmgqhHi4K7kWJBRmZycUKZkYGChoGFQYGBgamlobmmgoumUWpySXGLoaGCmXF8abxBgoFYEpHwQUkqAkA","t":1707477556930},"version":7,"user":"dddrphf7npd2l2jqtb2meehi562hrojtugggbf235s3p2kockv8eduqva93i5nfj"}
     d = {"path":"pro/finder","query":{"rootCategory":9013971011,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":0,"perPage":5},"domainId":1,"id":56,"version":7}
     # d = {"path":"pro/product","offerPages":0,"maxAge":60,"type":"finder","history":False,"domainId":"1","refreshProduct":False,"getTracking":False,"includeDeals":True,"stats":None,"getSubSalesRankAvg":True,"asin":"B09WPP7R6S","id":7795,"version":7}
@@ -99,8 +99,8 @@ while True:
 
 
     if json_msg['id'] == -1:
-        send_encoded_msg({"path":"user/session","type":"login","username":"username3243454",
-                          "password":"(username3243454)","id":111,"version":7})
+        send_encoded_msg({"path":"user/session","type":"login","username":"tonylaz927@gmail.com",
+                          "password":"KeepaTony1","id":111,"version":7})
     
     elif json_msg['id']==111:
         token = json_msg.get('token',None)
