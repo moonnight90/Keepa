@@ -161,10 +161,10 @@ def handle_msg(json_msg):
         if json_msg['status']==200:
             parse_product(json_msg)
             tmp_products+=1
-            if tmp_products>=5:
+            if tmp_products>=20:
                 page+=1
                 tmp_products = 0
-                d = {"path":"pro/finder","query":{"rootCategory":category,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":page,"perPage":5},"domainId":1,"id":56,"version":7}
+                d = {"path":"pro/finder","query":{"rootCategory":category,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":page,"perPage":20},"domainId":1,"id":56,"version":7}
                 send_encoded_msg(d)
 
 
