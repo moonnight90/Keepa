@@ -134,11 +134,11 @@ def handle_msg(json_msg):
             print(f"Login Success ({token[:20]}...)")
             send_encoded_msg({"path":"pro/category","domainId":1,"categoryIds":[-1],"l":"keepa.com","u":"/","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0","h":"y05NLUjUS87PBQA=","id":112,"fp":{"i":"tncphz","r":"c/Rz93FV0PDMK0nN0VEAUxpBmgqhHi4K7kWJBRmZycUKZkYGChoGFQYGBgamlobmmgoumUWpySXGLoaGCmXF8abxBgoFYEpHwQUkqAkA","t":int(time.time()*1000)},"version":7,"user":token})
         else:
-            print(json_msg.get('errors'))
+            print("Credential Invalid")
+            return True
 
     elif json_msg['id'] == 112:
         if json_msg['status']==200:
-            print("Login Success")
             send_encoded_msg({"path":"pro/category","domainId":1,"categoryIds":[-1],"id":222,"version":7})
         else: return True
     elif json_msg['id'] == 222:
