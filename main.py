@@ -55,11 +55,14 @@ products_count = 0
 def get_bookscouter(isbn):
     url = f"https://api.bookscouter.com/v4/prices/sell/{isbn}"
     resp = ses.get(url)
+    json.dump(resp.json(),open(f"files/{isbn}.json",'w',encoding='utf-8',errors='ignore'))
     prices = resp.json().get('prices',[])
+    
     tmp = {"Bookscouter Price": 0.0,"Bookscouter Company": ''}
     h_p = 0
     for price in prices:
         p = price.get('price',0)
+
         if p>h_p:
             tmp.update({
                 "Bookscouter Price": p,
