@@ -23,8 +23,8 @@ headers = {
     'Sec-WebSocket-Extensions': 'permessage-deflate; client_max_window_bits',
 }
 
-ses = Session()
-ses.headers.update(headers)
+client = Session()
+client.headers.update(headers)
 
 ws = websocket.WebSocket()
 ws.connect('wss://push.keepa.com/apps/cloud/?app=keepaWebsite&version=2.0',header=headers)
@@ -53,8 +53,11 @@ def searchProducts(products):
 products_count = 0
 
 def get_bookscouter(isbn):
+    proxy = "http://ljcfjwtg-rotate:npvk3i54uzg5@p.webshare.io:80"
     url = f"https://api.bookscouter.com/v4/prices/sell/{isbn}"
-    resp = ses.get(url)
+    while True:
+        resp = client.get(url,proxies={"http":proxy,"https":proxy})
+        if resp.status_code != 429:break
     json.dump(resp.json(),open(f"files/{isbn}.json",'w',encoding='utf-8',errors='ignore'))
     prices = resp.json().get('prices',[])
     
@@ -73,6 +76,7 @@ def get_bookscouter(isbn):
     
 
 def parse_product(json_d):
+    global master_df
     product = json_d.get('products')[0]
     title = product['title']
     
@@ -110,8 +114,14 @@ def parse_product(json_d):
     tmp['Amazon Link'] = f"https://dyn.keepa.com/r/?type=amazon&smile=0&domain=1&asin={tmp['ASIN']}&source=website&path=product"
     tmp['Last Fresh Date and Time'] = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
     print(f"[DONE] {products_count}: {title}")
-    pd.DataFrame([tmp]).to_csv('Products.csv',index=False,mode='a',header=not os.path.exists('Products.csv'))
 
+    # pd.DataFrame([tmp]).to_csv('Products.csv',index=False,mode='a',header=not os.path.exists('Products.csv'))
+    if tmp['ASIN'] in master_df['ASIN'].values:
+        keys = list(tmp.keys())
+        master_df.loc[master_df['ASIN'] == tmp['ASIN'],keys] = [tmp[key] for key in keys]
+    else:
+        master_df = master_df._append(tmp, ignore_index=True)
+    master_df.to_csv('Products.csv',index=False)
 def input_category(json_d):
     categories = json_d['categories']
     cat_list = []
@@ -147,7 +157,7 @@ def handle_msg(json_msg):
     elif json_msg['id'] == 222:
         category = input_category(json_msg)
         total_product_to_scrape = int(input("[?] No Products: "))
-        d = {"path":"pro/finder","query":{"rootCategory":category,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":page,"perPage":20},"domainId":1,"id":56,"version":7}
+        d = {"path":"pro/finder","query":{"rootCategory":category,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":page,"perPage":5},"domainId":1,"id":56,"version":7}
         send_encoded_msg(d)
 
     elif json_msg['id']==56:
@@ -164,10 +174,10 @@ def handle_msg(json_msg):
         if json_msg['status']==200:
             parse_product(json_msg)
             tmp_products+=1
-            if tmp_products>=20:
+            if tmp_products>=5:
                 page+=1
                 tmp_products = 0
-                d = {"path":"pro/finder","query":{"rootCategory":category,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":page,"perPage":20},"domainId":1,"id":56,"version":7}
+                d = {"path":"pro/finder","query":{"rootCategory":category,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":page,"perPage":5},"domainId":1,"id":56,"version":7}
                 send_encoded_msg(d)
 
 
@@ -196,5 +206,8 @@ if __name__ == "__main__":
     category = None
     username = input('[?] Username/Email: ')
     password = getpass.getpass(prompt="[?] Password: ")
-
+    if os.path.exists('Products.csv'):
+        master_df = pd.read_csv('Products.csv',encoding='utf-8',encoding_errors='ignore')
+    else:
+        master_df = pd.DataFrame()
     main()
