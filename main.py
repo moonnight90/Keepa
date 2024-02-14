@@ -47,7 +47,10 @@ def send_encoded_msg(json_msg):
 def searchProducts(products):
     for i,product in enumerate(products,start=1):
         i = {"path":"pro/product","refreshProduct":True,"domainId":1,"history":True,"getSellersNoHistory":True,"asin":product,"offerPages":6,"type":"offers","maxAge":0,"id":10000+i,"version":7}
-        send_encoded_msg(i)
+        try:
+            send_encoded_msg(i)
+        except websocket._exceptions.WebSocketConnectionClosedException:
+            return False
         time.sleep(0.2)
 
 products_count = 0
@@ -182,7 +185,8 @@ def handle_msg(json_msg):
 
 
         else:
-            print(json_msg)
+            if json_msg['tokens'] == -10:
+                print("Quota limit exceeded...")
             return True
         
         products_count+=1
