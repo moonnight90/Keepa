@@ -139,12 +139,11 @@ def input_category(json_d):
 def handle_msg(json_msg):
     global products_count,total_product_to_scrape
     global page,tmp_products,category
-
-    if json_msg['id'] == -1:
+    if json_msg.get('id','') == -1 or json_msg.get('status','')==108:
         send_encoded_msg({"path":"user/session","type":"login","username":username,
                           "password":password,"id":111,"version":7})
     
-    elif json_msg['id']==111:
+    elif json_msg.get('id','')==111:
         token = json_msg.get('token',None)
         if token:
             print(f"Login Success ({token[:20]}...)")
@@ -153,17 +152,17 @@ def handle_msg(json_msg):
             print("Credential Invalid")
             return True
 
-    elif json_msg['id'] == 112:
+    elif json_msg.get('id','') == 112:
         if json_msg['status']==200:
             send_encoded_msg({"path":"pro/category","domainId":1,"categoryIds":[-1],"id":222,"version":7})
         else: return True
-    elif json_msg['id'] == 222:
+    elif json_msg.get('id','') == 222:
         category = input_category(json_msg)
         total_product_to_scrape = int(input("[?] No Products: "))
         d = {"path":"pro/finder","query":{"rootCategory":category,"sort":[["current_SALES","asc"]],"productType":[0,1,2],"page":page,"perPage":5},"domainId":1,"id":56,"version":7}
         send_encoded_msg(d)
 
-    elif json_msg['id']==56:
+    elif json_msg.get('id','')==56:
         if json_msg['status']==200:
             products = json_msg['queryResult']['1']
             threading.Thread(target=searchProducts,args=(products,)).start()
@@ -172,7 +171,7 @@ def handle_msg(json_msg):
             return True
     
 
-    elif json_msg['id']>10000:
+    elif json_msg.get('id','')>10000:
 
         if json_msg['status']==200:
             parse_product(json_msg)
@@ -199,6 +198,7 @@ def main():
         rev = base64.b64encode(ws.recv()).decode('utf-8')
         msg = decompress_msg(rev)
         json_msg = json.loads(msg.decode())
+        print(json_msg)
         if handle_msg(json_msg): break
     
     ws.close()
