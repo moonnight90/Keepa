@@ -9,7 +9,7 @@ import threading
 from requests import Session
 from datetime import datetime
 import getpass
-
+from anticap import get_key
 headers = {
     'Pragma': 'no-cache',
     'Origin': 'https://keepa.com',
@@ -119,11 +119,14 @@ def parse_product(json_d):
     print(f"[DONE] {products_count}: {title}")
 
     # pd.DataFrame([tmp]).to_csv('Products.csv',index=False,mode='a',header=not os.path.exists('Products.csv'))
-    if tmp['ASIN'] in master_df['ASIN'].values:
-        keys = list(tmp.keys())
-        master_df.loc[master_df['ASIN'] == tmp['ASIN'],keys] = [tmp[key] for key in keys]
+    if master_df.empty:
+        master_df = pd.DataFrame([tmp])
     else:
-        master_df = master_df._append(tmp, ignore_index=True)
+        if tmp['ASIN'] in master_df['ASIN'].values:
+            keys = list(tmp.keys())
+            master_df.loc[master_df['ASIN'] == tmp['ASIN'],keys] = [tmp[key] for key in keys]
+        else:
+            master_df = master_df._append(tmp, ignore_index=True)
     master_df.to_csv('Products.csv',index=False)
 def input_category(json_d):
     categories = json_d['categories']
@@ -143,8 +146,20 @@ def handle_msg(json_msg):
         send_encoded_msg({"path":"user/session","type":"login","username":username,
                           "password":password,"id":111,"version":7})
     
+    elif json_msg.get('id','')==113:
+        if json_msg.get('isHuman')==True:
+            send_encoded_msg({"path":"user/session","type":"login","username":username,
+                          "password":password,"id":111,"version":7})
+            
+
+
     elif json_msg.get('id','')==111:
         token = json_msg.get('token',None)
+        if json_msg.get('checkHuman',None) == True:
+            key = get_key()
+            d = {"path":"isHuman","captcha":key,"id":113,"version":7,"user":"f5e3f2870bd8802bc6a07b705fd9771c6f93d9641efb9985397ab38e192ba4a5"}
+            send_encoded_msg(d)
+
         if token:
             print(f"Login Success ({token[:20]}...)")
             send_encoded_msg({"path":"pro/category","domainId":1,"categoryIds":[-1],"l":"keepa.com","u":"/","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0","h":"y05NLUjUS87PBQA=","id":112,"fp":{"i":"tncphz","r":"c/Rz93FV0PDMK0nN0VEAUxpBmgqhHi4K7kWJBRmZycUKZkYGChoGFQYGBgamlobmmgoumUWpySXGLoaGCmXF8abxBgoFYEpHwQUkqAkA","t":int(time.time()*1000)},"version":7,"user":token})
@@ -198,7 +213,6 @@ def main():
         rev = base64.b64encode(ws.recv()).decode('utf-8')
         msg = decompress_msg(rev)
         json_msg = json.loads(msg.decode())
-        print(json_msg)
         if handle_msg(json_msg): break
     
     ws.close()
